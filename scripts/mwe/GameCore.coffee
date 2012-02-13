@@ -16,8 +16,8 @@ limitations under the License.
 
 ###
 
-require [ 'dojo/_base/declare', 'dojo/dom', './InputManager' ], (declare, dom, InputManager) ->
-  declare [ InputManager ], null, {
+define [ 'dojo/_base/declare', 'dojo/dom', 'mwe/InputManager' ], (declare, dom, InputManager) ->
+  declare 'GameCore', null, {
     statics: {
       FONT_SIZE : 24
     }
@@ -80,19 +80,19 @@ require [ 'dojo/_base/declare', 'dojo/dom', './InputManager' ], (declare, dom, I
       @initInput @inputManager
 
       @isRunning = true
-    
+
     # Should be overidden in the subclasses to map input to actions
     initInput: (inputManager) ->
-      
+
     # Should be overidden in the subclasses to deal with user input
     handleInput: (inputManager, elapsedTime) ->
-      
+
     # Runs through the game loop until stop() is called.
     gameLoop: ->
       @currTime = new Date().getTime()
       @elapsedTime = Math.min @currTime - @prevTime, @maxStep
       @prevTime = @currTime
-      
+
       # it's using a resource manager, but resources haven't finished
       if @resourceManager? and not @resourceManager.resourcesReady()
         @updateLoadingScreen @elapsedTime
@@ -106,16 +106,16 @@ require [ 'dojo/_base/declare', 'dojo/dom', './InputManager' ], (declare, dom, I
         @context.save()
         @draw @context
         @context.restore()
-      
+
       # requestAnimFrame @gameLoop(), @canvas
-      
+
     # Launches the game loop.
     launchLoop: ->
       @elapsedTime = 0
       startTime = Date.now()
       @currTime = startTime
       @prevTime = startTime
-      
+
       # shim layer with setTimeout fallback
       window.requestAnimFrame = (->
         window.requestAnimationFrame or
@@ -126,55 +126,55 @@ require [ 'dojo/_base/declare', 'dojo/dom', './InputManager' ], (declare, dom, I
         (callback, element) ->
           window.setTimeout callback, 1000/60
       )()
-      
+
       # usage:
       # instead of setInterval render, 16
-      
+
       thisgame = @
-      
+
       (animloop = ->
         thisgame.gameLoop()
         requestAnimFrame animloop, document
       )()
-      
+
       # requestAnimFrame(@gameLoop(), @canvas);
   	  # @gameLoop();
-      
+
     loopRunner: ->
       @gameLoop()
       requestAnimFrame @loopRunner, @canvas
-      
+
     # Updates the state of the game/animation based on the amount of elapsed time that has passed.
     update: (elapsedTime) ->
       # overide this function in your game instance
-      
+
     # Override this if want to use it update sprites/objects on loading screen
     updateLoadingScreen: (elapsedTime) ->
-      
+
     # Draws to the screen. Subclasses or instances must override this method to paint items to the screen.
     draw: (context) ->
       if @contextType is '2d'
         context.font = '14px sans-serif'
         context.fillText 'This game does not have its own draw function!', 10, 50
-    
+
     drawLoadingScreen: (context) ->
       if @resourceManager? and @contextType is '2d'
         context.fillStyle = @loadingBackground
         context.fillRect 0, 0, @width, @height
         context.fillStyle = @loadingForeground
         context.strokeStyle = @loadingForeground
-        
+
         textPxSize = Math.floor @height/12
-        # loadingText = 
+        # loadingText =
       	# textWidth = ctx.measureText(s.text).width
-        
+
         context.font = "bold #{textPxSize}px sans-serif"
-        
+
         context.fillText "Loading... #{@resourceManager.getPercentComplete()}%", @width * 0.1, @height * 0.55
-        
+
         context.strokeRect @width * 0.1, @height * 0.7, @width * 0.8, @height * 0.1
         context.fillRect @width * 0.1, @height * 0.7, @width * 0.8 * @resourceManager.getPercentComplete() / 100, @height * 0.1
-        
+
         context.lineWidth = 4
 
   }

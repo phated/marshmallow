@@ -16,8 +16,8 @@ limitations under the License.
 
 ###
 
-require [ 'dojo/_base/declare' ], (declare) ->
-  declare [], null, {
+define [ 'dojo/_base/declare' ], (declare) ->
+  declare 'ResourceManager', null, {
     imageCount: 0
     loadedImages: 0
     allLoaded: false
@@ -39,7 +39,7 @@ require [ 'dojo/_base/declare' ], (declare) ->
 
       img.src = filename
       @imgList.push { name: filename, img: img }
-      
+
       return img
 
     resourcesReady: ->

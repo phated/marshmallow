@@ -16,13 +16,13 @@ limitations under the License.
 
 ###
 
-require [ 'dojo/_base/declare', 'dojo/on', 'dojo/touch', 'dojo/dom-geometry' ], (declare, bind, touch, domGeom) ->
-  declare [ bind, touch ], null, {
+define [ 'dojo/_base/declare', 'dojo/on', 'dojo/touch', 'dojo/dom-geometry' ], (declare, bind, touch, domGeom) ->
+  declare 'InputManager', null, {
     keyActions: []
     mouseAction: null
     touchAction: null
     canvas: null
-    
+
     constructor: (args) ->
       declare.safeMixin @, args
       bind document, 'keydown', @keyPressed
@@ -31,60 +31,60 @@ require [ 'dojo/_base/declare', 'dojo/on', 'dojo/touch', 'dojo/dom-geometry' ], 
       bind document, 'mouseup', @mouseUp
       bind @canvas, 'mousemove', @mouseMove
       bind document, touch.release, @touchEnd
-      bind @canvas, touch.start, @touchStart
+      bind @canvas, touch.press, @touchStart
       bind @canvas, touch.move, @touchMove
-      
+
     # Maps a GameAction to a specific key. The key codes are defined in java.awt.KeyEvent.
     # If the key already has a GameAction mapped to it, the new GameAction overwrites it.
     mapToKey: (gameAction, keyCode) ->
       unless @keyActions
         @keyActions = []
       @keyActions[keyCode] = gameAction
-      
+
     addKeyAction: (keyCode, initialPressOnly) ->
       ga = new GameAction # GameAction is never required?????????
       if initialPressOnly
         ga.behavior = ga.statics.DETECT_INITIAL_PRESS_ONLY # Can this be replaced by binding to on.once????
       @mapToKey ga, keyCode
-      
+
     setMouseAction: (gameAction) ->
       @mouseAction = gameAction
-      
+
     setTouchAction: (gameAction) ->
       @touchAction = gameAction
-      
+
     mouseUp: (event) ->
     mouseDown: (event) ->
     mouseMove: (event) ->
     touchStart: (event) ->
     touchEnd: (event) ->
     touchMove: (event) ->
-    
+
     getKeyAction: (event) ->
       return @keyActions[event.keyCode] if @keyActions.length
       return null
-      
+
     keyPressed: (event) ->
       gameAction = @getKeyAction event
       gameAction.press() if gameAction? and not gameAction.isPressed()
-      
+
       # make sure the key isn't processed for anything else
 	    # TODO
 	    # event.consume()
-      
+
     keyReleased: (event) ->
       gameAction = @getKeyAction event
       gameAction.release() if gameAction?
-      
+
       # make sure the key isn't processed for anything else
 	    # TODO
 	    # event.consume()
-      
+
     keyTyped: (event) ->
       # make sure the key isn't processed for anything else
 	    # TODO
 	    # event.consume()
-      
+
     getMouseLoc: (event) ->
       coordsM = domGeom.position @canvas
       return { x: Math.round(event.clientX - coordsM.x), y: Math.round(event.clientY - coordsM.y) }

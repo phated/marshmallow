@@ -1,6 +1,7 @@
-/**
- 
- Copyright 2011 Luis Montes
+
+/*
+
+Copyright 2011 Luis Montes
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,144 +14,75 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+*/
 
-**/
+(function() {
 
-dojo.provide("mwe.InputManager");
+  define(['dojo/_base/declare', 'dojo/on', 'dojo/touch', 'dojo/dom-geometry'], function(declare, bind, touch, domGeom) {
+    return declare('InputManager', null, {
+      keyActions: [],
+      mouseAction: null,
+      touchAction: null,
+      canvas: null,
+      constructor: function(args) {
+        declare.safeMixin(this, args);
+        bind(document, 'keydown', this.keyPressed);
+        bind(document, 'keyup', this.keyPressed);
+        bind(this.canvas, 'mousedown', this.mouseDown);
+        bind(document, 'mouseup', this.mouseUp);
+        bind(this.canvas, 'mousemove', this.mouseMove);
+        bind(document, touch.release, this.touchEnd);
+        bind(this.canvas, touch.press, this.touchStart);
+        return bind(this.canvas, touch.move, this.touchMove);
+      },
+      mapToKey: function(gameAction, keyCode) {
+        if (!this.keyActions) this.keyActions = [];
+        return this.keyActions[keyCode] = gameAction;
+      },
+      addKeyAction: function(keyCode, initialPressOnly) {
+        var ga;
+        ga = new GameAction;
+        if (initialPressOnly) ga.behavior = ga.statics.DETECT_INITIAL_PRESS_ONLY;
+        return this.mapToKey(ga, keyCode);
+      },
+      setMouseAction: function(gameAction) {
+        return this.mouseAction = gameAction;
+      },
+      setTouchAction: function(gameAction) {
+        return this.touchAction = gameAction;
+      },
+      mouseUp: function(event) {},
+      mouseDown: function(event) {},
+      mouseMove: function(event) {},
+      touchStart: function(event) {},
+      touchEnd: function(event) {},
+      touchMove: function(event) {},
+      getKeyAction: function(event) {
+        if (this.keyActions.length) return this.keyActions[event.keyCode];
+        return null;
+      },
+      keyPressed: function(event) {
+        var gameAction;
+        gameAction = this.getKeyAction(event);
+        if ((gameAction != null) && !gameAction.isPressed()) {
+          return gameAction.press();
+        }
+      },
+      keyReleased: function(event) {
+        var gameAction;
+        gameAction = this.getKeyAction(event);
+        if (gameAction != null) return gameAction.release();
+      },
+      keyTyped: function(event) {},
+      getMouseLoc: function(event) {
+        var coordsM;
+        coordsM = domGeom.position(this.canvas);
+        return {
+          x: Math.round(event.clientX - coordsM.x),
+          y: Math.round(event.clientY - coordsM.y)
+        };
+      }
+    });
+  });
 
-/*********************** mwe.InputManager ********************************************/
-dojo.declare("mwe.InputManager",null,{
-	
-	keyActions: [],
-	mouseAction: null,
-	touchAction: null,
-	
-	canvas: null,
-
-    constructor: function(args){
-		dojo.safeMixin(this, args);
-		dojo.connect(document,"onkeydown",this,this.keyPressed);
-		dojo.connect(document,"onkeyup",this,this.keyReleased);
-		dojo.connect(this.canvas,"onmousedown",this,this.mouseDown);
-		dojo.connect(document,"onmouseup",this,this.mouseUp);
-		dojo.connect(this.canvas,"onmousemove",this,this.mouseMove);
-		
-		dojo.connect(document,'ontouchend',this,this.touchEnd);
-		dojo.connect(this.canvas,'ontouchstart',this.touchStart);
-		dojo.connect(this.canvas,'ontouchmove',this.touchMove);
-	},
-
-
-    /**
-    Maps a GameAction to a specific key. The key codes are
-    defined in java.awt.KeyEvent. If the key already has
-    a GameAction mapped to it, the new GameAction overwrites
-    it.
-	*/
-	mapToKey: function(gameAction, keyCode) {
-    	if(!this.keyActions){
-    		this.keyActions = [];
-    	}
-	    this.keyActions[keyCode] = gameAction;
-	},
-	
-	addKeyAction: function(keyCode,initialPressOnly){
-		var ga = new mwe.GameAction();
-		if(initialPressOnly){
-			ga.behavior = ga.statics.DETECT_INITAL_PRESS_ONLY;
-		}		
-		this.mapToKey(ga,keyCode);	
-	},
-	
-	setMouseAction: function(gameAction){
-		this.mouseAction = gameAction;		
-	},
-	
-	setTouchAction: function(gameAction){
-		this.touchAction = gameAction;		
-	},
-	
-	
-	mouseUp: function(e){
-		
-		
-	},
-	
-	mouseDown: function(e){
-		
-		
-	},
-	
-	mouseMove: function(e){
-		
-	},
-	
-	touchStart: function(e){
-		
-		
-	},
-	
-	touchEnd: function(e){
-		
-		
-	},
-	
-	touchMove: function(e){
-		
-	},
-	
-	
-	getKeyAction: function(e) {
-	    
-	    if (this.keyActions.length) {
-	        return this.keyActions[e.keyCode];
-	    }
-	    else {
-	        return null;
-	    }
-	},
-	
-	keyPressed : function(e) {
-	    var gameAction = this.getKeyAction(e);
-	    if (gameAction && (!gameAction.isPressed())) {
-	    	gameAction.press();
-	    }
-
-	    
-	    // make sure the key isn't processed for anything else
-	    // TODO
-	    //e.consume();
-	},
-	
-	
-	keyReleased : function(e) {
-	    var gameAction = this.getKeyAction(e);
-	    if (gameAction != null) {
-	        gameAction.release();
-	    }
-
-	    
-	    // make sure the key isn't processed for anything else
-	    // TODO
-	    //e.consume();
-	},
-	
-	
-	keyTyped: function(e) {
-	    // make sure the key isn't processed for anything else
-	    // TODO
-	    //e.consume();
-	},
-	
-	/**
-	 * Get the mouse pointer location within the canvas' coordinates, not the page's
-	 */
-	getMouseLoc: function(evt){
-		  var coordsM = dojo.coords(this.canvas);
-		  return {x: Math.round(evt.clientX - coordsM.x), y: Math.round(evt.clientY - coordsM.y)};
-	}
-	
-	
-});
-
-
+}).call(this);
