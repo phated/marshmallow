@@ -92,15 +92,15 @@ require [ 'dojo/_base/declare','dojo/dom', 'dojo/dom-geometry', 'mwe/GameCore', 
       console.log "obj: #{obj}"
       box.applyImpulse obj.id, Math.random() * 360, 100
 
-  require [ 'dojo/dom-construct', 'dojo/_base/window', 'dojo/on', 'dojo/touch', 'dojo/domReady!' ], (domConstruct, window, bind, touch) ->
-    domConstruct.place stats.domElement, window.body(), 'last' if debug
+  require [ 'dojo/dom-construct', 'dojo/_base/window', 'dojo/on', 'dojo/touch', 'dojo/domReady!' ], (domConstruct, win, bind, touch) ->
+    domConstruct.place stats.domElement, win.body(), 'last' if debug
     rm = new ResourceManager()
     backImg = rm.loadImage 'cannon.png'
     foreImg = rm.loadImage 'foreground.png'
     marshImg = rm.loadImage 'marsh32.png'
 
     bind document, 'mouseup', mouseUpHandler
-    bind document, touch.release, (event) ->
+    bind document, 'touchend', (event) ->
       mouseUpHandler event.changedTouches[0]
     bind document, 'selectstart', (event) ->
       event.preventDefault()

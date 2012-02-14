@@ -17,6 +17,7 @@ limitations under the License.
 */
 
 (function() {
+  var _this = this;
 
   define(['dojo/_base/declare', 'dojo/on', 'dojo/touch', 'dojo/dom-geometry'], function(declare, bind, touch, domGeom) {
     return declare('InputManager', null, {
@@ -61,13 +62,7 @@ limitations under the License.
         if (this.keyActions.length) return this.keyActions[event.keyCode];
         return null;
       },
-      keyPressed: function(event) {
-        var gameAction;
-        gameAction = this.getKeyAction(event);
-        if ((gameAction != null) && !gameAction.isPressed()) {
-          return gameAction.press();
-        }
-      },
+      keyPressed: function(event, test) {},
       keyReleased: function(event) {
         var gameAction;
         gameAction = this.getKeyAction(event);

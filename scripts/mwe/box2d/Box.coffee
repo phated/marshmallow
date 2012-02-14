@@ -33,8 +33,8 @@ define [ 'dojo/_base/declare', 'scripts/thirdparty/Box2d.min.js' ], (declare) ->
     width: 640
     height: 480
     scale: 30
-    bodiesMap: {}
-    fixturesMap: {}
+    bodiesMap: null
+    fixturesMap: null
     world: null
     gravityX: 0
     gravityY: 10
@@ -43,13 +43,13 @@ define [ 'dojo/_base/declare', 'scripts/thirdparty/Box2d.min.js' ], (declare) ->
     constructor: (args) ->
       declare.safeMixin @, args
       @intervalRate = parseInt args.intervalRate if args.intervaleRate
-      @bodiesMap = [] if @bodiesMap?
-      @fixturesMap = [] if @fixturesMap?
+      @bodiesMap = [] unless @bodiesMap?
+      @fixturesMap = [] unless @fixturesMap?
       @world = new b2World new b2Vec2(@gravityX, @gravityY), @allowSleep
 
     update: ->
       start = Date.now()
-      stepRate = @adaptive ? (now - @lastTimestamp) / 1000 : (1 / @intervalRate)
+      stepRate = (if (@adaptive) then (now - @lastTimestamp) / 1000 else (1 / @intervalRate))
       @world.Step stepRate, 10, 10
       @world.ClearForces()
       return Date.now() - start
@@ -82,6 +82,11 @@ define [ 'dojo/_base/declare', 'scripts/thirdparty/Box2d.min.js' ], (declare) ->
       fixDef.density = entity.density
       fixDef.friction = entity.friction
 
+      if entity.staticBody
+        bodyDef.type = b2Body.b2_staticBody
+      else
+        bodyDef.type = b2Body.b2_dynamicBody
+
       if entity.radius
         fixDef.shape = new b2CircleShape entity.radius
       else if entity.points
@@ -98,15 +103,14 @@ define [ 'dojo/_base/declare', 'scripts/thirdparty/Box2d.min.js' ], (declare) ->
       bodyDef.position.x = entity.x
       bodyDef.position.y = entity.y
       bodyDef.userData = entity.id
-      bodyDef.linearDamping = entity.leanerDamping
+      bodyDef.linearDamping = entity.linearDamping
       bodyDef.angularDamping = entity.angularDamping
       @bodiesMap[entity.id] = @world.CreateBody bodyDef
       @fixturesMap[entity.id] = @bodiesMap[entity.id].CreateFixture fixDef
 
     applyImpulse: (bodyId, degrees, power) ->
       body = @bodiesMap[bodyId]
-      if body
-        body.ApplyImpulse new b2Vec2 Math.cos(degrees * (Math.PI / 180)), Math.sin(degrees * (Math.PI / 180)), body.GetWorldCenter()
+      body.ApplyImpulse new b2Vec2(Math.cos(degrees * (Math.PI / 180)) * power, Math.sin(degrees * (Math.PI / 180)) * power), body.GetWorldCenter() if body
 
     removeBody: (id) ->
       if @bodiesMap[id]

@@ -16,7 +16,7 @@ limitations under the License.
 
 ###
 
-define [ 'dojo/_base/declare', 'dojo/on', 'dojo/touch', 'dojo/dom-geometry' ], (declare, bind, touch, domGeom) ->
+define [ 'dojo/_base/declare', 'dojo/on', 'dojo/touch', 'dojo/dom-geometry' ], (declare, bind, touch, domGeom) =>
   declare 'InputManager', null, {
     keyActions: []
     mouseAction: null
@@ -64,9 +64,10 @@ define [ 'dojo/_base/declare', 'dojo/on', 'dojo/touch', 'dojo/dom-geometry' ], (
       return @keyActions[event.keyCode] if @keyActions.length
       return null
 
-    keyPressed: (event) ->
-      gameAction = @getKeyAction event
-      gameAction.press() if gameAction? and not gameAction.isPressed()
+    keyPressed: (event, test) ->
+      # This is BROKEN - Not sure how to bind {this} correctly with AMD
+      #gameAction = @getKeyAction event
+      #gameAction.press() if gameAction? and not gameAction.isPressed()
 
       # make sure the key isn't processed for anything else
 	    # TODO

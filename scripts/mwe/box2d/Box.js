@@ -36,8 +36,8 @@ limitations under the License.
       width: 640,
       height: 480,
       scale: 30,
-      bodiesMap: {},
-      fixturesMap: {},
+      bodiesMap: null,
+      fixturesMap: null,
       world: null,
       gravityX: 0,
       gravityY: 10,
@@ -45,16 +45,14 @@ limitations under the License.
       constructor: function(args) {
         declare.safeMixin(this, args);
         if (args.intervaleRate) this.intervalRate = parseInt(args.intervalRate);
-        if (this.bodiesMap != null) this.bodiesMap = [];
-        if (this.fixturesMap != null) this.fixturesMap = [];
+        if (this.bodiesMap == null) this.bodiesMap = [];
+        if (this.fixturesMap == null) this.fixturesMap = [];
         return this.world = new b2World(new b2Vec2(this.gravityX, this.gravityY), this.allowSleep);
       },
       update: function() {
-        var start, stepRate, _ref;
+        var start, stepRate;
         start = Date.now();
-        stepRate = (_ref = this.adaptive) != null ? _ref : (now - this.lastTimestamp) / {
-          1000: 1 / this.intervalRate
-        };
+        stepRate = (this.adaptive ? (now - this.lastTimestamp) / 1000 : 1 / this.intervalRate);
         this.world.Step(stepRate, 10, 10);
         this.world.ClearForces();
         return Date.now() - start;
@@ -95,6 +93,11 @@ limitations under the License.
         fixDef.restitution = entity.restitution;
         fixDef.density = entity.density;
         fixDef.friction = entity.friction;
+        if (entity.staticBody) {
+          bodyDef.type = b2Body.b2_staticBody;
+        } else {
+          bodyDef.type = b2Body.b2_dynamicBody;
+        }
         if (entity.radius) {
           fixDef.shape = new b2CircleShape(entity.radius);
         } else if (entity.points) {
@@ -115,7 +118,7 @@ limitations under the License.
         bodyDef.position.x = entity.x;
         bodyDef.position.y = entity.y;
         bodyDef.userData = entity.id;
-        bodyDef.linearDamping = entity.leanerDamping;
+        bodyDef.linearDamping = entity.linearDamping;
         bodyDef.angularDamping = entity.angularDamping;
         this.bodiesMap[entity.id] = this.world.CreateBody(bodyDef);
         return this.fixturesMap[entity.id] = this.bodiesMap[entity.id].CreateFixture(fixDef);
@@ -124,7 +127,7 @@ limitations under the License.
         var body;
         body = this.bodiesMap[bodyId];
         if (body) {
-          return body.ApplyImpulse(new b2Vec2(Math.cos(degrees * (Math.PI / 180)), Math.sin(degrees * (Math.PI / 180)), body.GetWorldCenter()));
+          return body.ApplyImpulse(new b2Vec2(Math.cos(degrees * (Math.PI / 180)) * power, Math.sin(degrees * (Math.PI / 180)) * power), body.GetWorldCenter());
         }
       },
       removeBody: function(id) {

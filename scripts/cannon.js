@@ -406,15 +406,15 @@ limitations under the License.
         return box.applyImpulse(obj.id, Math.random() * 360, 100);
       }
     };
-    return require(['dojo/dom-construct', 'dojo/_base/window', 'dojo/on', 'dojo/touch', 'dojo/domReady!'], function(domConstruct, window, bind, touch) {
+    return require(['dojo/dom-construct', 'dojo/_base/window', 'dojo/on', 'dojo/touch', 'dojo/domReady!'], function(domConstruct, win, bind, touch) {
       var addBodies, game, shape, _i, _len;
-      if (debug) domConstruct.place(stats.domElement, window.body(), 'last');
+      if (debug) domConstruct.place(stats.domElement, win.body(), 'last');
       rm = new ResourceManager();
       backImg = rm.loadImage('cannon.png');
       foreImg = rm.loadImage('foreground.png');
       marshImg = rm.loadImage('marsh32.png');
       bind(document, 'mouseup', mouseUpHandler);
-      bind(document, touch.release, function(event) {
+      bind(document, 'touchend', function(event) {
         return mouseUpHandler(event.changedTouches[0]);
       });
       bind(document, 'selectstart', function(event) {
