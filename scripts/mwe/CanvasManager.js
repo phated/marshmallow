@@ -18,14 +18,14 @@ limitations under the License.
 
 (function() {
 
-  define(['dojo/_base/declare', 'dojo/_base/window', 'dojo/dom', 'dojo/dom-construct', 'dojo/domReady!'], function(declare, win, dom, domConstruct) {
+  define(['dojo/_base/declare', 'dojo/_base/window', 'dojo/dom', 'dojo/dom-construct', 'dojo/dom-style', 'dojo/domReady!'], function(declare, win, dom, domConstruct, domStyle) {
     return declare('CanvasManager', null, {
       canvasId: 'canvas',
       contextType: '2d',
       canvas: null,
       context: null,
-      height: 600,
-      width: 800,
+      height: null,
+      width: null,
       constructor: function(args) {
         declare.safeMixin(this, args);
         this.setCanvas();
@@ -43,19 +43,29 @@ limitations under the License.
           return alert("Sorry, your browser does not support a " + this.contextType + " drawing surface on canvas.  I recommend any browser but Internet Explorer");
         }
       },
-      setHeight: function() {
-        if (this.height) {
-          return this.canvas.height = this.height;
-        } else {
-          return this.height = this.canvas.height;
-        }
+      setHeight: function(height) {
+        var _ref;
+        if (height != null) this.height = height;
+        if (this.height < 0) return;
+        return this.canvas.height = (_ref = this.height) != null ? _ref : this.height = this.canvas.height;
+        /*
+              if @height
+                @canvas.height = @height
+              else
+                @height = @canvas.height
+        */
       },
-      setWidth: function() {
-        if (this.width) {
-          return this.canvas.width = this.width;
-        } else {
-          return this.width = this.canvas.width;
-        }
+      setWidth: function(width) {
+        var _ref;
+        if (width != null) this.width = width;
+        if (this.width < 0) return;
+        return this.canvas.width = (_ref = this.width) != null ? _ref : this.width = this.canvas.width;
+        /*
+              if @width
+                @canvas.width = @width
+              else
+                @width = @canvas.width
+        */
       },
       draw: function(context) {
         if (this.contextType === '2d') {
@@ -77,6 +87,19 @@ limitations under the License.
           context.fillRect(this.width * 0.1, this.height * 0.7, this.width * 0.8 * this.resourceManager.getPercentComplete() / 100, this.height * 0.1);
           return context.lineWidth = 4;
         }
+      },
+      fullwindow: function() {
+        this.setHeight(window.innerHeight);
+        this.setWidth(window.innerWidth);
+        domStyle.set(win.body(), {
+          'margin': '0',
+          'position': 'fixed'
+        });
+        return domStyle.set(this.canvas, {
+          'position': 'fixed',
+          'top': '0',
+          'left': '0'
+        });
       }
     });
   });

@@ -22,8 +22,8 @@ define [ 'dojo/_base/declare', 'dojo/_base/window', 'dojo/dom', 'dojo/dom-constr
     contextType: '2d'
     canvas: null
     context: null
-    height: 600
-    width: 800
+    height: null
+    width: null
     
     constructor: (args) ->
       declare.safeMixin @, args
@@ -40,20 +40,18 @@ define [ 'dojo/_base/declare', 'dojo/_base/window', 'dojo/dom', 'dojo/dom-constr
 
       return alert "Sorry, your browser does not support a #{@contextType} drawing surface on canvas.  I recommend any browser but Internet Explorer" unless @context
         
-    setHeight: ->
+    setHeight: (height) ->
       # try using game object's dimensions, or set dimensions to canvas if none are specified
-      if @height
-        @canvas.height = @height
-      else
-        @height = @canvas.height
+      @height = height if height?
+      return if @height < 0
+      @canvas.height = @height ?= @canvas.height
         
-    setWidth: ->
+    setWidth: (width) ->
       # try using game object's dimensions, or set dimensions to canvas if none are specified
-      if @width
-        @canvas.width = @width
-      else
-        @width = @canvas.width
-        
+      @width = width if width?
+      return if @width < 0
+      @canvas.width = @width ?= @canvas.width
+      
     # Draws to the screen. Subclasses or instances must override this method to paint items to the screen.
     draw: (context) ->
       if @contextType is '2d'
