@@ -26,6 +26,8 @@ limitations under the License.
       context: null,
       height: null,
       width: null,
+      loadingForeground: '#00F',
+      loadingBackground: '#FFF',
       constructor: function(args) {
         declare.safeMixin(this, args);
         this.setCanvas();
@@ -61,18 +63,18 @@ limitations under the License.
           return context.fillText('This game does not have its own draw function!', 10, 50);
         }
       },
-      drawLoadingScreen: function(context) {
+      drawLoadingScreen: function(context, resourceManager) {
         var textPxSize;
-        if ((this.resourceManager != null) && this.contextType === '2d') {
+        if (this.contextType === '2d') {
           context.fillStyle = this.loadingBackground;
           context.fillRect(0, 0, this.width, this.height);
           context.fillStyle = this.loadingForeground;
           context.strokeStyle = this.loadingForeground;
           textPxSize = Math.floor(this.height / 12);
           context.font = "bold " + textPxSize + "px sans-serif";
-          context.fillText("Loading... " + (this.resourceManager.getPercentComplete()) + "%", this.width * 0.1, this.height * 0.55);
+          context.fillText("Loading... " + (resourceManager.getPercentComplete()) + "%", this.width * 0.1, this.height * 0.55);
           context.strokeRect(this.width * 0.1, this.height * 0.7, this.width * 0.8, this.height * 0.1);
-          context.fillRect(this.width * 0.1, this.height * 0.7, this.width * 0.8 * this.resourceManager.getPercentComplete() / 100, this.height * 0.1);
+          context.fillRect(this.width * 0.1, this.height * 0.7, this.width * 0.8 * resourceManager.getPercentComplete() / 100, this.height * 0.1);
           return context.lineWidth = 4;
         }
       }

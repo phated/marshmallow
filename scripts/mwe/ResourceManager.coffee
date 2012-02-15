@@ -18,10 +18,7 @@ limitations under the License.
 
 define [ 'dojo/_base/declare' ], (declare) ->
   declare 'ResourceManager', null, {
-    imageCount: 0
-    loadedImages: 0
-    allLoaded: false
-    imageDir: 'images/'
+    imageDir: null
     imgList: []
 
     constructor: (args) ->
@@ -29,31 +26,27 @@ define [ 'dojo/_base/declare' ], (declare) ->
 
     # Gets an image.
     loadImage: (filename, width, height) ->
+      filename = @imageDir + filename if @imageDir?
       return image.img for image in @imgList when image.name is filename
-
-      @allLoaded = false
       img = new Image()
-
-      if @imageDir
-        filename = @imageDir + filename
-
+      img.onerror = -> alert 'missing file'
       img.src = filename
-      @imgList.push { name: filename, img: img }
-
+      @imgList.push name: filename, img: img
       return img
+    
+    loadFiles: (files) ->
+      imgs = {}
+      imgs[id] = @loadImage file for id, file of files
+      return imgs
 
     resourcesReady: ->
-      if @allLoaded
-        return true
-      else
-        return false for image in @imgList when not image.img.complete
-        @allLoaded = true
-        return true
+      return false for image in @imgList when not image.img.complete
+      return true
 
     getPercentComplete: ->
+      return 0 for image in @imgList when image.img.error
+      return 100.0 if @imgList.length is 0
       numComplete = 0.0
       numComplete += 1.0 for image in @imgList when image.img.complete
-      return 0 if @imgList.length is 0
       return Math.round numComplete / @imgList.length * 100.0
-
   }

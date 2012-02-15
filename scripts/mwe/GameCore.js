@@ -27,8 +27,6 @@ limitations under the License.
       maxStep: 40,
       resourceManager: null,
       inputManager: null,
-      loadingForeground: '#00F',
-      loadingBackground: '#FFF',
       canvasManager: null,
       constructor: function(args) {
         return declare.safeMixin(this, args);
@@ -59,7 +57,7 @@ limitations under the License.
         this.prevTime = this.currTime;
         if ((this.resourceManager != null) && !this.resourceManager.resourcesReady()) {
           this.updateLoadingScreen(this.elapsedTime);
-          return this.canvasManager.drawLoadingScreen(this.canvasManager.context);
+          return this.canvasManager.drawLoadingScreen(this.canvasManager.context, this.resourceManager);
         } else {
           if (!this.paused) this.update(this.elapsedTime);
           this.canvasManager.context.save();

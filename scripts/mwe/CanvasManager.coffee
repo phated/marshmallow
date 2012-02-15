@@ -24,6 +24,8 @@ define [ 'dojo/_base/declare', 'dojo/_base/window', 'dojo/dom', 'dojo/dom-constr
     context: null
     height: null
     width: null
+    loadingForeground: '#00F'
+    loadingBackground: '#FFF'
     
     constructor: (args) ->
       declare.safeMixin @, args
@@ -58,8 +60,8 @@ define [ 'dojo/_base/declare', 'dojo/_base/window', 'dojo/dom', 'dojo/dom-constr
         context.font = '14px sans-serif'
         context.fillText 'This game does not have its own draw function!', 10, 50
         
-    drawLoadingScreen: (context) ->
-      if @resourceManager? and @contextType is '2d'
+    drawLoadingScreen: (context, resourceManager) ->
+      if @contextType is '2d'
         context.fillStyle = @loadingBackground
         context.fillRect 0, 0, @width, @height
         context.fillStyle = @loadingForeground
@@ -68,10 +70,10 @@ define [ 'dojo/_base/declare', 'dojo/_base/window', 'dojo/dom', 'dojo/dom-constr
         textPxSize = Math.floor @height/12
         context.font = "bold #{textPxSize}px sans-serif"
 
-        context.fillText "Loading... #{@resourceManager.getPercentComplete()}%", @width * 0.1, @height * 0.55
+        context.fillText "Loading... #{resourceManager.getPercentComplete()}%", @width * 0.1, @height * 0.55
 
         context.strokeRect @width * 0.1, @height * 0.7, @width * 0.8, @height * 0.1
-        context.fillRect @width * 0.1, @height * 0.7, @width * 0.8 * @resourceManager.getPercentComplete() / 100, @height * 0.1
+        context.fillRect @width * 0.1, @height * 0.7, @width * 0.8 * resourceManager.getPercentComplete() / 100, @height * 0.1
 
         context.lineWidth = 4
   }

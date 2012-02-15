@@ -18,23 +18,10 @@ limitations under the License.
 
 (function() {
 
-  require(['dojo/_base/declare', 'dojo/dom', 'dojo/dom-geometry', 'mwe/GameCore', 'mwe/ResourceManager', 'mwe/ui/DNDFileController', 'mwe/box2d/Box', 'mwe/box2d/CircleEntity', 'mwe/box2d/RectangleEntity', 'mwe/box2d/PolygonEntity', 'scripts/thirdparty/stats.js', 'scripts/thirdparty/Box2d.min.js'], function(declare, dom, domGeom, GameCore, ResourceManager, DNDFileController, Box, CircleEntity, RectangleEntity, PolygonEntity) {
-    var MAX_POLY_SIDES, NULL_CENTER, SCALE, backImg, bodiesState, box, debug, foreImg, geomId, getCollidedSprite, getGfxMouse, intersect, marshImg, maxImpulse, millisToMarsh, millisToMarshPassed, mouseUpHandler, rm, showHidden, solids, stats, worker, world, zones;
-    debug = false;
-    if ((typeof localStorage !== "undefined" && localStorage !== null) && localStorage.debug === 'y') {
-      debug = true;
-    }
+  require(['dojo/_base/declare', 'dojo/dom', 'dojo/dom-geometry', 'mwe/GameCore', 'mwe/ResourceManager', 'mwe/CanvasManager', 'mwe/ui/DNDFileController', 'mwe/box2d/Box', 'mwe/box2d/CircleEntity', 'mwe/box2d/RectangleEntity', 'mwe/box2d/PolygonEntity', 'scripts/thirdparty/stats.js', 'scripts/thirdparty/Box2d.min.js'], function(declare, dom, domGeom, GameCore, ResourceManager, CanvasManager, DNDFileController, Box, CircleEntity, RectangleEntity, PolygonEntity) {
+    var SCALE, addBodies, box, cm, debug, geomId, getCollidedSprite, getGfxMouse, images, intersect, millisToMarsh, millisToMarshPassed, mouseUpHandler, rm, shape, showHidden, solids, stats, world, zones, _i, _len;
+    debug = (typeof localStorage !== "undefined" && localStorage !== null) && localStorage.debug === 'y' ? true : false;
     SCALE = 30.0;
-    NULL_CENTER = {
-      x: null,
-      y: null
-    };
-    MAX_POLY_SIDES = 6;
-    maxImpulse = 25;
-    rm = null;
-    backImg = null;
-    foreImg = null;
-    marshImg = null;
     geomId = 0;
     millisToMarsh = 100;
     millisToMarshPassed = 0;
@@ -45,8 +32,6 @@ limitations under the License.
     stats.domElement.style.bottom = '0px';
     zones = [];
     world = {};
-    worker = null;
-    bodiesState = null;
     box = null;
     solids = [
       {
@@ -359,6 +344,51 @@ limitations under the License.
         "type": "Polygon"
       }
     ];
+    rm = new ResourceManager({
+      imageDir: 'images/'
+    });
+    images = rm.loadFiles({
+      backImg: 'cannon.png',
+      foreImg: 'foreground.png',
+      marshImg: 'marsh32.png'
+    });
+    cm = new CanvasManager({
+      canvasId: 'canvas',
+      height: 590,
+      width: 620,
+      draw: function(ctx) {
+        var entity, id;
+        ctx.drawImage(images.backImg, 0, 0, this.width, images.backImg.height);
+        for (id in world) {
+          entity = world[id];
+          if (!entity.hidden || showHidden) entity.draw(ctx);
+        }
+        return ctx.drawImage(images.foreImg, 0, 0, this.width, images.foreImg.height);
+      }
+    });
+    box = new Box({
+      intervalRate: 60,
+      adaptive: false,
+      width: cm.width,
+      height: cm.height,
+      scale: SCALE,
+      gravityY: 9.8
+    });
+    addBodies = function(shape) {
+      var b2dshape;
+      console.log(shape.type);
+      geomId++;
+      if (shape.type === 'Polygon') {
+        b2dshape = new PolygonEntity(shape);
+        b2dshape.id = geomId;
+        box.addBody(b2dshape);
+        return world[geomId] = b2dshape;
+      }
+    };
+    for (_i = 0, _len = solids.length; _i < _len; _i++) {
+      shape = solids[_i];
+      addBodies(shape);
+    }
     declare('Marshmallow', RectangleEntity, {
       constructor: function(args) {
         return declare.safeMixin(this, args);
@@ -406,13 +436,9 @@ limitations under the License.
         return box.applyImpulse(obj.id, Math.random() * 360, 100);
       }
     };
-    return require(['dojo/dom-construct', 'dojo/_base/window', 'dojo/on', 'dojo/touch', 'mwe/CanvasManager', 'dojo/domReady!'], function(domConstruct, win, bind, touch, CanvasManager) {
-      var addBodies, cm, game, shape, _i, _len;
+    return require(['dojo/dom-construct', 'dojo/_base/window', 'dojo/on', 'dojo/touch', 'dojo/domReady!'], function(domConstruct, win, bind, touch) {
+      var game;
       if (debug) domConstruct.place(stats.domElement, win.body(), 'last');
-      rm = new ResourceManager();
-      backImg = rm.loadImage('cannon.png');
-      foreImg = rm.loadImage('foreground.png');
-      marshImg = rm.loadImage('marsh32.png');
       bind(document, 'mouseup', mouseUpHandler);
       bind(document, 'touchend', function(event) {
         return mouseUpHandler(event.changedTouches[0]);
@@ -421,25 +447,11 @@ limitations under the License.
         event.preventDefault();
         return false;
       });
-      cm = new CanvasManager({
-        canvasId: 'canvas',
-        height: 590,
-        width: 620,
-        draw: function(ctx) {
-          var entity, id;
-          ctx.drawImage(backImg, 0, 0, this.width, backImg.height);
-          for (id in world) {
-            entity = world[id];
-            if (!entity.hidden || showHidden) entity.draw(ctx);
-          }
-          return ctx.drawImage(foreImg, 0, 0, this.width, foreImg.height);
-        }
-      });
       game = new GameCore({
         canvasManager: cm,
         resourceManager: rm,
         update: function(elapsedTime) {
-          var entity, id, marsh;
+          var bodiesState, entity, id, marsh;
           try {
             box.update();
             bodiesState = box.getState();
@@ -469,7 +481,7 @@ limitations under the License.
                 y: Math.random() * 10 - 10,
                 halfHeight: (32 / SCALE) / 2,
                 halfWidth: (32 / SCALE) / 2,
-                img: marshImg,
+                img: images.marshImg,
                 staticBody: false,
                 restitution: 0.5
               });
@@ -481,29 +493,6 @@ limitations under the License.
           }
         }
       });
-      box = new Box({
-        intervalRate: 60,
-        adaptive: false,
-        width: game.width,
-        height: game.height,
-        scale: SCALE,
-        gravityY: 9.8
-      });
-      addBodies = function(shape) {
-        var b2dshape;
-        console.log(shape.type);
-        geomId++;
-        if (shape.type === 'Polygon') {
-          b2dshape = new PolygonEntity(shape);
-          b2dshape.id = geomId;
-          box.addBody(b2dshape);
-          return world[geomId] = b2dshape;
-        }
-      };
-      for (_i = 0, _len = solids.length; _i < _len; _i++) {
-        shape = solids[_i];
-        addBodies(shape);
-      }
       return game.run();
     });
   });

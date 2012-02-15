@@ -23,8 +23,6 @@ define [ 'dojo/_base/declare', 'dojo/_base/window', 'dojo/dom', 'dojo/dom-constr
     maxStep: 40  # max number of milliseconds between updates. (in case user switches tabs and requestAnimationFrame pauses) 
     resourceManager: null
     inputManager: null
-    loadingForeground: '#00F'
-    loadingBackground: '#FFF'
     canvasManager: null
 
     constructor: (args) ->
@@ -69,7 +67,7 @@ define [ 'dojo/_base/declare', 'dojo/_base/window', 'dojo/dom', 'dojo/dom-constr
       # it's using a resource manager, but resources haven't finished
       if @resourceManager? and not @resourceManager.resourcesReady()
         @updateLoadingScreen @elapsedTime
-        @canvasManager.drawLoadingScreen @canvasManager.context
+        @canvasManager.drawLoadingScreen @canvasManager.context, @resourceManager
       else
         # Need to fix inputManager stuff
         #@handleInput @inputManager, @elapsedTime
