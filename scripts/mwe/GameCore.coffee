@@ -16,16 +16,16 @@ limitations under the License.
 
 ###
 
-define [ 'dojo/_base/declare', 'dojo/_base/window', 'dojo/dom', 'dojo/dom-construct', 'mwe/CanvasManager', 'mwe/rAFshim' ], (declare, win, dom, domConstruct, CanvasManager) ->
+define [ 'dojo/_base/declare', 'dojo/_base/window', 'dojo/dom', 'dojo/dom-construct', 'mwe/rAFshim' ], (declare, win, dom, domConstruct) ->
   declare 'GameCore', null, {
     statics: FONT_SIZE: 24
     isRunning : false
     maxStep: 40  # max number of milliseconds between updates. (in case user switches tabs and requestAnimationFrame pauses) 
-    resourceManager: new ResourceManager
+    resourceManager: null
     inputManager: null
     loadingForeground: '#00F'
     loadingBackground: '#FFF'
-    canvasManager: new CanvasManager canvasId: 'canvas'
+    canvasManager: null
 
     constructor: (args) ->
       declare.safeMixin @, args

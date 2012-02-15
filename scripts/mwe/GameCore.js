@@ -18,7 +18,7 @@ limitations under the License.
 
 (function() {
 
-  define(['dojo/_base/declare', 'dojo/_base/window', 'dojo/dom', 'dojo/dom-construct', 'mwe/CanvasManager', 'mwe/rAFshim'], function(declare, win, dom, domConstruct, CanvasManager) {
+  define(['dojo/_base/declare', 'dojo/_base/window', 'dojo/dom', 'dojo/dom-construct', 'mwe/rAFshim'], function(declare, win, dom, domConstruct) {
     return declare('GameCore', null, {
       statics: {
         FONT_SIZE: 24
@@ -29,9 +29,7 @@ limitations under the License.
       inputManager: null,
       loadingForeground: '#00F',
       loadingBackground: '#FFF',
-      canvasManager: new CanvasManager({
-        canvasId: 'canvas'
-      }),
+      canvasManager: null,
       constructor: function(args) {
         return declare.safeMixin(this, args);
       },
@@ -39,11 +37,10 @@ limitations under the License.
         return this.isRunning = false;
       },
       run: function() {
-        if (!this.isRunning) {
-          this.loadResources(this.canvasManager.canvas);
-          this.launchLoop();
-          return this.isRunning = true;
-        }
+        if (this.isRunning) return;
+        this.loadResources(this.canvasManager.canvas);
+        this.launchLoop();
+        return this.isRunning = true;
       },
       loadResources: function(canvas) {},
       init: function() {
