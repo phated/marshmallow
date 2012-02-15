@@ -406,7 +406,7 @@ limitations under the License.
         return box.applyImpulse(obj.id, Math.random() * 360, 100);
       }
     };
-    return require(['dojo/dom-construct', 'dojo/_base/window', 'dojo/on', 'dojo/touch', 'dojo/domReady!'], function(domConstruct, win, bind, touch) {
+    return require(['dojo/dom-construct', 'dojo/_base/window', 'dojo/dom', 'dojo/on', 'dojo/touch', 'mwe/CanvasManager', 'dojo/domReady!'], function(domConstruct, win, dom, bind, touch, CanvasManager) {
       var addBodies, cm, game, shape, _i, _len;
       if (debug) domConstruct.place(stats.domElement, win.body(), 'last');
       rm = new ResourceManager();
@@ -438,6 +438,10 @@ limitations under the License.
       game = new GameCore({
         canvasManager: cm,
         resourceManager: rm,
+        constructor: function(args) {
+          bind(dom.byId('fullwindow'), 'submit', game.canvasManager.fullwindow);
+          return declare.safeMixin(this, args);
+        },
         update: function(elapsedTime) {
           var entity, id, marsh;
           try {

@@ -92,7 +92,7 @@ require [ 'dojo/_base/declare','dojo/dom', 'dojo/dom-geometry', 'mwe/GameCore', 
       console.log "obj: #{obj}"
       box.applyImpulse obj.id, Math.random() * 360, 100
 
-  require [ 'dojo/dom-construct', 'dojo/_base/window', 'dojo/on', 'dojo/touch', 'dojo/domReady!' ], (domConstruct, win, bind, touch) ->
+  require [ 'dojo/dom-construct', 'dojo/_base/window', 'dojo/on', 'dojo/touch', 'mwe/CanvasManager', 'dojo/domReady!' ], (domConstruct, win, bind, touch, CanvasManager) ->
     domConstruct.place stats.domElement, win.body(), 'last' if debug
     rm = new ResourceManager()
     backImg = rm.loadImage 'cannon.png'
