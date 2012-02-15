@@ -18,14 +18,14 @@ limitations under the License.
 
 define [ 'dojo/_base/declare', 'dojo/_base/window', 'dojo/dom', 'dojo/dom-construct', 'mwe/CanvasManager', 'mwe/rAFshim' ], (declare, win, dom, domConstruct, CanvasManager) ->
   declare 'GameCore', null, {
-    statics: { FONT_SIZE : 24 }
+    statics: FONT_SIZE: 24
     isRunning : false
     maxStep: 40  # max number of milliseconds between updates. (in case user switches tabs and requestAnimationFrame pauses) 
-    resourceManager: new ResourceManager()
+    resourceManager: new ResourceManager
     inputManager: null
     loadingForeground: '#00F'
     loadingBackground: '#FFF'
-    canvasManager: new CanvasManager { canvasId: 'canvas' }
+    canvasManager: new CanvasManager canvasId: 'canvas'
 
     constructor: (args) ->
       declare.safeMixin @, args
@@ -36,11 +36,11 @@ define [ 'dojo/_base/declare', 'dojo/_base/window', 'dojo/dom', 'dojo/dom-constr
 
     # Calls init() and gameLoop()
     run: ->
-      unless @isRunning
-        #@init()
-        @loadResources @canvasManager.canvas
-        @launchLoop()
-        @isRunning = true
+      return if @isRunning
+      #@init()
+      @loadResources @canvasManager.canvas
+      @launchLoop()
+      @isRunning = true
 
     # Should be overidden in the subclasses to create images
     loadResources: (canvas) ->
