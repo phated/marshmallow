@@ -105,9 +105,19 @@ require [ 'dojo/_base/declare','dojo/dom', 'dojo/dom-geometry', 'mwe/GameCore', 
     bind document, 'selectstart', (event) ->
       event.preventDefault()
       return false
+      
+    cm = new CanvasManager { 
+      canvasId: 'canvas'
+      height: 590
+      width: 620
+      draw: (ctx) ->
+        ctx.drawImage backImg, 0, 0, @width, backImg.height
+        entity.draw ctx for id, entity of world when not entity.hidden or showHidden
+        ctx.drawImage foreImg, 0, 0, @width, foreImg.height
+    }
 
     game = new GameCore {
-      canvasId: 'canvas'
+      canvasManager: cm
       resourceManager: rm
       update: (elapsedTime) ->
         try
@@ -147,10 +157,6 @@ require [ 'dojo/_base/declare','dojo/dom', 'dojo/dom-geometry', 'mwe/GameCore', 
         catch updateE
           # just in case of any unexplainable box2d errors
           console.log "error in update: #{updateE}"
-      draw: (ctx) ->
-        ctx.drawImage backImg, 0, 0, @width, backImg.height
-        entity.draw ctx for id, entity of world when not entity.hidden or showHidden
-        ctx.drawImage foreImg, 0, 0, @width, foreImg.height
     }
 
     box = new Box {

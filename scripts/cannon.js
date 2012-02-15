@@ -407,7 +407,7 @@ limitations under the License.
       }
     };
     return require(['dojo/dom-construct', 'dojo/_base/window', 'dojo/on', 'dojo/touch', 'dojo/domReady!'], function(domConstruct, win, bind, touch) {
-      var addBodies, game, shape, _i, _len;
+      var addBodies, cm, game, shape, _i, _len;
       if (debug) domConstruct.place(stats.domElement, win.body(), 'last');
       rm = new ResourceManager();
       backImg = rm.loadImage('cannon.png');
@@ -421,8 +421,22 @@ limitations under the License.
         event.preventDefault();
         return false;
       });
-      game = new GameCore({
+      cm = new CanvasManager({
         canvasId: 'canvas',
+        height: 590,
+        width: 620,
+        draw: function(ctx) {
+          var entity, id;
+          ctx.drawImage(backImg, 0, 0, this.width, backImg.height);
+          for (id in world) {
+            entity = world[id];
+            if (!entity.hidden || showHidden) entity.draw(ctx);
+          }
+          return ctx.drawImage(foreImg, 0, 0, this.width, foreImg.height);
+        }
+      });
+      game = new GameCore({
+        canvasManager: cm,
         resourceManager: rm,
         update: function(elapsedTime) {
           var entity, id, marsh;
@@ -465,15 +479,6 @@ limitations under the License.
           } catch (updateE) {
             return console.log("error in update: " + updateE);
           }
-        },
-        draw: function(ctx) {
-          var entity, id;
-          ctx.drawImage(backImg, 0, 0, this.width, backImg.height);
-          for (id in world) {
-            entity = world[id];
-            if (!entity.hidden || showHidden) entity.draw(ctx);
-          }
-          return ctx.drawImage(foreImg, 0, 0, this.width, foreImg.height);
         }
       });
       box = new Box({
