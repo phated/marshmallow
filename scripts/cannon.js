@@ -18,8 +18,8 @@ limitations under the License.
 
 (function() {
 
-  require(['dojo/_base/declare', 'dojo/dom', 'dojo/dom-geometry', 'mwe/GameCore', 'mwe/ResourceManager', 'mwe/CanvasManager', 'mwe/ui/DNDFileController', 'mwe/box2d/Box', 'mwe/box2d/CircleEntity', 'mwe/box2d/RectangleEntity', 'mwe/box2d/PolygonEntity', 'scripts/thirdparty/stats.js', 'scripts/thirdparty/Box2d.min.js'], function(declare, dom, domGeom, GameCore, ResourceManager, CanvasManager, DNDFileController, Box, CircleEntity, RectangleEntity, PolygonEntity) {
-    var SCALE, addBodies, box, cm, debug, geomId, getCollidedSprite, getGfxMouse, images, intersect, millisToMarsh, millisToMarshPassed, mouseUpHandler, rm, shape, showHidden, solids, stats, world, zones, _i, _len;
+  require(['dojo/dom', 'dojo/dom-geometry', 'mwe/GameCore', 'mwe/ResourceManager', 'mwe/CanvasManager', 'mwe/box2d/Box', 'mwe/box2d/CircleEntity', 'mwe/box2d/RectangleEntity', 'mwe/box2d/PolygonEntity', 'Marshmallow', 'thirdparty/stats', 'scripts/thirdparty/Box2d.min.js'], function(dom, domGeom, GameCore, ResourceManager, CanvasManager, Box, CircleEntity, RectangleEntity, PolygonEntity, Marshmallow, Stats) {
+    var SCALE, addBodies, box, cm, debug, game, geomId, getCollidedSprite, getGfxMouse, images, intersect, millisToMarsh, millisToMarshPassed, mouseUpHandler, rm, shape, showHidden, solids, stats, world, _i, _len;
     debug = (typeof localStorage !== "undefined" && localStorage !== null) && localStorage.debug === 'y' ? true : false;
     SCALE = 30.0;
     geomId = 0;
@@ -27,12 +27,10 @@ limitations under the License.
     millisToMarshPassed = 0;
     showHidden = false;
     stats = new Stats();
-    stats.domElement.style.position = 'absolute';
-    stats.domElement.style.right = '0px';
-    stats.domElement.style.bottom = '0px';
-    zones = [];
+    stats.getDomElement().style.position = 'absolute';
+    stats.getDomElement().style.right = '0px';
+    stats.getDomElement().style.bottom = '0px';
     world = {};
-    box = null;
     solids = [
       {
         "id": 42,
@@ -389,18 +387,51 @@ limitations under the License.
       shape = solids[_i];
       addBodies(shape);
     }
-    declare('Marshmallow', RectangleEntity, {
-      constructor: function(args) {
-        return declare.safeMixin(this, args);
-      },
-      draw: function(ctx) {
-        ctx.save();
-        ctx.translate(this.x * SCALE, this.y * SCALE);
-        ctx.rotate(this.angle);
-        ctx.translate(-this.x * SCALE, -this.y * SCALE);
-        ctx.fillStyle = 'red';
-        ctx.drawImage(this.img, (this.x - this.halfWidth) * SCALE, (this.y - this.halfHeight) * SCALE, (this.halfWidth * 2) * SCALE, (this.halfHeight * 2) * SCALE);
-        return ctx.restore();
+    game = new GameCore({
+      canvasManager: cm,
+      resourceManager: rm,
+      update: function(elapsedTime) {
+        var bodiesState, entity, id, marsh;
+        try {
+          box.update();
+          bodiesState = box.getState();
+          for (id in bodiesState) {
+            entity = world[id];
+            if (entity) {
+              try {
+                if (entity.y > 100) {
+                  box.removeBody(id);
+                  delete world[id];
+                } else {
+                  entity.update(bodiesState[id]);
+                }
+              } catch (eu) {
+                console.log(entity, bodiesState[id], eu);
+              }
+            }
+          }
+          if (debug) stats.update();
+          millisToMarshPassed += elapsedTime;
+          if (millisToMarshPassed > millisToMarsh) {
+            millisToMarshPassed = 0;
+            geomId++;
+            marsh = new Marshmallow({
+              id: geomId,
+              x: Math.random() * 16 + 3,
+              y: Math.random() * 10 - 10,
+              halfHeight: (32 / SCALE) / 2,
+              halfWidth: (32 / SCALE) / 2,
+              img: images.marshImg,
+              staticBody: false,
+              restitution: 0.5,
+              box: box
+            });
+            box.addBody(marsh);
+            return world[geomId] = marsh;
+          }
+        } catch (updateE) {
+          return console.log('error in update', updateE);
+        }
       }
     });
     getGfxMouse = function(event) {
@@ -437,8 +468,7 @@ limitations under the License.
       }
     };
     return require(['dojo/dom-construct', 'dojo/_base/window', 'dojo/on', 'dojo/touch', 'dojo/domReady!'], function(domConstruct, win, bind, touch) {
-      var game;
-      if (debug) domConstruct.place(stats.domElement, win.body(), 'last');
+      if (debug) domConstruct.place(stats.getDomElement(), win.body(), 'last');
       bind(document, 'mouseup', mouseUpHandler);
       bind(document, 'touchend', function(event) {
         return mouseUpHandler(event.changedTouches[0]);
@@ -446,52 +476,6 @@ limitations under the License.
       bind(document, 'selectstart', function(event) {
         event.preventDefault();
         return false;
-      });
-      game = new GameCore({
-        canvasManager: cm,
-        resourceManager: rm,
-        update: function(elapsedTime) {
-          var bodiesState, entity, id, marsh;
-          try {
-            box.update();
-            bodiesState = box.getState();
-            for (id in bodiesState) {
-              entity = world[id];
-              if (entity) {
-                try {
-                  if (entity.y > 100) {
-                    box.removeBody(id);
-                    delete world[id];
-                  } else {
-                    entity.update(bodiesState[id]);
-                  }
-                } catch (eu) {
-                  console.log(entity, bodiesState[id], eu);
-                }
-              }
-            }
-            if (debug) stats.update();
-            millisToMarshPassed += elapsedTime;
-            if (millisToMarshPassed > millisToMarsh) {
-              millisToMarshPassed = 0;
-              geomId++;
-              marsh = new Marshmallow({
-                id: geomId,
-                x: Math.random() * 16 + 3,
-                y: Math.random() * 10 - 10,
-                halfHeight: (32 / SCALE) / 2,
-                halfWidth: (32 / SCALE) / 2,
-                img: images.marshImg,
-                staticBody: false,
-                restitution: 0.5
-              });
-              box.addBody(marsh);
-              return world[geomId] = marsh;
-            }
-          } catch (updateE) {
-            return console.log("error in update: " + updateE);
-          }
-        }
       });
       return game.run();
     });

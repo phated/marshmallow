@@ -34,6 +34,7 @@ limitations under the License.
       color: 'rgba(128,128,128,0.5)',
       strokeStyle: '#000000',
       hidden: false,
+      box: null,
       constructor: function(args) {
         return declare.safeMixin(this, args);
       },
@@ -53,15 +54,10 @@ limitations under the License.
         return ctx.fill();
       },
       build: function(def) {
-        if (def.radius) {
-          return new CircleEntity(def);
-        } else if (def.points) {
-          return new PolygonEntity(def);
-        } else if (def.img) {
-          return new ImageEntity(def);
-        } else {
-          return new RectangleEntity(def);
-        }
+        if (def.radius) return new CircleEntity(def);
+        if (def.points) return new PolygonEntity(def);
+        if (def.img) return new ImageEntity(def);
+        return new RectangleEntity(def);
       }
     });
   });

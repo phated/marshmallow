@@ -22,6 +22,7 @@ define [ 'dojo/_base/declare', 'dojo/on', 'dojo/touch', 'dojo/dom-geometry' ], (
     mouseAction: null
     touchAction: null
     canvas: null
+    box: null
 
     constructor: (args) ->
       declare.safeMixin @, args
@@ -88,5 +89,6 @@ define [ 'dojo/_base/declare', 'dojo/on', 'dojo/touch', 'dojo/dom-geometry' ], (
 
     getMouseLoc: (event) ->
       coordsM = domGeom.position @canvas
-      return { x: Math.round(event.clientX - coordsM.x), y: Math.round(event.clientY - coordsM.y) }
+      return { x: Math.round(event.clientX - coordsM.x), y: Math.round(event.clientY - coordsM.y) } unless box?
+      return { x: (event.clientX - coordsM.x) / @box.scale, y: (event.clientY - coordsM.y) / @box.scale }
   }

@@ -32,6 +32,7 @@ define [ 'dojo/_base/declare', 'dojo/_base/lang', 'scripts/thirdparty/Box2d.min.
     color: 'rgba(128,128,128,0.5)'
     strokeStyle: '#000000'
     hidden: false
+    box: null
 
     constructor: (args) ->
       declare.safeMixin @, args
@@ -56,12 +57,8 @@ define [ 'dojo/_base/declare', 'dojo/_base/lang', 'scripts/thirdparty/Box2d.min.
       ctx.fill()
 
     build: (def) ->
-      if def.radius
-        return new CircleEntity def
-      else if def.points
-        return new PolygonEntity def
-      else if def.img
-        return new ImageEntity def
-      else
-        return new RectangleEntity def
+      return new CircleEntity def if def.radius
+      return new PolygonEntity def if def.points
+      return new ImageEntity def if def.img
+      return new RectangleEntity def
   }
