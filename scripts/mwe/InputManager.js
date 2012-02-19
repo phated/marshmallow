@@ -19,22 +19,18 @@ limitations under the License.
 (function() {
   var _this = this;
 
-  define(['dojo/_base/declare', 'dojo/on', 'dojo/touch', 'dojo/dom-geometry'], function(declare, bind, touch, domGeom) {
+  define(['dojo/_base/declare', 'dojo/on', 'dojo/touch', 'dojo/dom-geometry', 'dojo/_base/lang'], function(declare, bind, touch, domGeom, lang) {
     return declare('InputManager', null, {
       keyActions: [],
       mouseAction: null,
       touchAction: null,
-      canvas: null,
+      canvasManager: null,
+      box: null,
       constructor: function(args) {
-        declare.safeMixin(this, args);
-        bind(document, 'keydown', this.keyPressed);
-        bind(document, 'keyup', this.keyPressed);
-        bind(this.canvas, 'mousedown', this.mouseDown);
-        bind(document, 'mouseup', this.mouseUp);
-        bind(this.canvas, 'mousemove', this.mouseMove);
-        bind(document, touch.release, this.touchEnd);
-        bind(this.canvas, touch.press, this.touchStart);
-        return bind(this.canvas, touch.move, this.touchMove);
+        return declare.safeMixin(this, args);
+      },
+      bind: function(target, eventTarget) {
+        return bind(target, eventTarget, this[eventTarget]);
       },
       mapToKey: function(gameAction, keyCode) {
         if (!this.keyActions) this.keyActions = [];
@@ -45,6 +41,16 @@ limitations under the License.
         ga = new GameAction;
         if (initialPressOnly) ga.behavior = ga.statics.DETECT_INITIAL_PRESS_ONLY;
         return this.mapToKey(ga, keyCode);
+      },
+      bindMouse: function() {
+        bind(this.canvasManager.canvas, 'mousedown', lang.hitch(this, this.mouseDown));
+        bind(document, 'mouseup', lang.hitch(this, this.mouseUp));
+        return bind(this.canvasManager.canvas, 'mousemove', lang.hitch(this, this.mouseMove));
+      },
+      bindTouch: function() {
+        bind(this.canvasManager.canvas, 'touchstart', this.touchStart);
+        bind(document, 'touchend', this.touchEnd);
+        return bind(this.canvasManager.canvas, 'touchmove', this.touchMove);
       },
       setMouseAction: function(gameAction) {
         return this.mouseAction = gameAction;
@@ -71,10 +77,16 @@ limitations under the License.
       keyTyped: function(event) {},
       getMouseLoc: function(event) {
         var coordsM;
-        coordsM = domGeom.position(this.canvas);
+        coordsM = domGeom.position(this.canvasManager.canvas);
+        if (this.box == null) {
+          return {
+            x: Math.round(event.clientX - coordsM.x),
+            y: Math.round(event.clientY - coordsM.y)
+          };
+        }
         return {
-          x: Math.round(event.clientX - coordsM.x),
-          y: Math.round(event.clientY - coordsM.y)
+          x: (event.clientX - coordsM.x) / this.box.scale,
+          y: (event.clientY - coordsM.y) / this.box.scale
         };
       }
     });

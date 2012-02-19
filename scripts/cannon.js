@@ -18,11 +18,11 @@ limitations under the License.
 
 (function() {
 
-  require(['dojo/dom', 'dojo/dom-geometry', 'mwe/GameCore', 'mwe/ResourceManager', 'mwe/CanvasManager', 'mwe/box2d/Box', 'mwe/box2d/CircleEntity', 'mwe/box2d/RectangleEntity', 'mwe/box2d/PolygonEntity', 'Marshmallow', 'thirdparty/stats', 'scripts/thirdparty/Box2d.min.js'], function(dom, domGeom, GameCore, ResourceManager, CanvasManager, Box, CircleEntity, RectangleEntity, PolygonEntity, Marshmallow, Stats) {
-    var SCALE, addBodies, box, cm, debug, game, geomId, getCollidedSprite, getGfxMouse, images, intersect, millisToMarsh, millisToMarshPassed, mouseUpHandler, rm, shape, showHidden, solids, stats, world, _i, _len;
+  require(['dojo/dom', 'dojo/dom-geometry', 'mwe/GameCore', 'mwe/ResourceManager', 'mwe/CanvasManager', 'mwe/InputManager', 'mwe/box2d/Box', 'mwe/box2d/CircleEntity', 'mwe/box2d/RectangleEntity', 'mwe/box2d/PolygonEntity', 'Marshmallow', 'thirdparty/stats', 'scripts/thirdparty/Box2d.min.js'], function(dom, domGeom, GameCore, ResourceManager, CanvasManager, InputManager, Box, CircleEntity, RectangleEntity, PolygonEntity, Marshmallow, Stats) {
+    var SCALE, box, cm, debug, game, geomId, getCollidedSprite, im, images, intersect, millisToMarsh, millisToMarshPassed, rm, showHidden, solids, stats, world;
     debug = (typeof localStorage !== "undefined" && localStorage !== null) && localStorage.debug === 'y' ? true : false;
     SCALE = 30.0;
-    geomId = 0;
+    geomId = 11;
     millisToMarsh = 100;
     millisToMarshPassed = 0;
     showHidden = false;
@@ -33,7 +33,7 @@ limitations under the License.
     world = {};
     solids = [
       {
-        "id": 42,
+        "id": 0,
         "x": 0,
         "y": 0,
         "points": [
@@ -64,7 +64,7 @@ limitations under the License.
           "p": 1
         }
       }, {
-        "id": 43,
+        "id": 1,
         "x": 0,
         "y": 0,
         "points": [
@@ -89,7 +89,7 @@ limitations under the License.
           "p": 1
         }
       }, {
-        "id": 44,
+        "id": 2,
         "x": 0,
         "y": 0,
         "points": [
@@ -120,7 +120,7 @@ limitations under the License.
           "p": 1
         }
       }, {
-        "id": 45,
+        "id": 3,
         "x": 0,
         "y": 0,
         "points": [
@@ -151,7 +151,7 @@ limitations under the License.
           "p": 1
         }
       }, {
-        "id": 46,
+        "id": 4,
         "x": 0,
         "y": 0,
         "points": [
@@ -182,7 +182,7 @@ limitations under the License.
           "p": 1
         }
       }, {
-        "id": 47,
+        "id": 5,
         "x": 0,
         "y": 0,
         "points": [
@@ -207,7 +207,7 @@ limitations under the License.
           "p": 1
         }
       }, {
-        "id": 48,
+        "id": 6,
         "x": 0,
         "y": 0,
         "points": [
@@ -238,7 +238,7 @@ limitations under the License.
           "p": 1
         }
       }, {
-        "id": 49,
+        "id": 7,
         "x": 0,
         "y": 0,
         "points": [
@@ -269,7 +269,7 @@ limitations under the License.
           "p": 1
         }
       }, {
-        "id": 50,
+        "id": 8,
         "x": 0,
         "y": 0,
         "points": [
@@ -291,7 +291,7 @@ limitations under the License.
           "p": 1
         }
       }, {
-        "id": 51,
+        "id": 9,
         "x": 0,
         "y": 0,
         "points": [
@@ -313,7 +313,7 @@ limitations under the License.
           "p": 1
         }
       }, {
-        "id": 52,
+        "id": 10,
         "x": 0,
         "y": 0,
         "points": [
@@ -372,21 +372,26 @@ limitations under the License.
       scale: SCALE,
       gravityY: 9.8
     });
-    addBodies = function(shape) {
-      var b2dshape;
-      console.log(shape.type);
-      geomId++;
-      if (shape.type === 'Polygon') {
-        b2dshape = new PolygonEntity(shape);
-        b2dshape.id = geomId;
-        box.addBody(b2dshape);
-        return world[geomId] = b2dshape;
+    box.setBodies(solids);
+    im = new InputManager({
+      box: box,
+      canvasManager: cm,
+      mouseUp: function(event) {
+        var obj;
+        obj = getCollidedSprite(this.getMouseLoc(event));
+        if (obj) return this.box.applyImpulse(obj.id, Math.random() * 360, 100);
+      },
+      touchEnd: function(event) {
+        return this.mouseUp(event.changedTouches[0]);
+      },
+      selectstart: function(event) {
+        event.preventDefault();
+        return false;
       }
-    };
-    for (_i = 0, _len = solids.length; _i < _len; _i++) {
-      shape = solids[_i];
-      addBodies(shape);
-    }
+    });
+    im.bindMouse();
+    im.bindTouch();
+    im.bind(document, 'selectstart');
     game = new GameCore({
       canvasManager: cm,
       resourceManager: rm,
@@ -434,14 +439,6 @@ limitations under the License.
         }
       }
     });
-    getGfxMouse = function(event) {
-      var coordsM;
-      coordsM = domGeom.position(dom.byId('canvas'));
-      return {
-        x: (event.clientX - coordsM.x) / SCALE,
-        y: (event.clientY - coordsM.y) / SCALE
-      };
-    };
     intersect = function(s1, s2, radiiSquared) {
       var distance_squared;
       distance_squared = Math.pow(s1.x - s2.x, 2) + Math.pow(s1.y - s2.y, 2);
@@ -455,28 +452,8 @@ limitations under the License.
       }
       return null;
     };
-    mouseUpHandler = function(event) {
-      var mouseDownPt, obj, pt;
-      mouseDownPt = null;
-      pt = getGfxMouse(event);
-      console.log("mouse: " + pt);
-      obj = getCollidedSprite(pt);
-      console.log("sprite: " + obj);
-      if (obj) {
-        console.log("obj: " + obj);
-        return box.applyImpulse(obj.id, Math.random() * 360, 100);
-      }
-    };
-    return require(['dojo/dom-construct', 'dojo/_base/window', 'dojo/on', 'dojo/touch', 'dojo/domReady!'], function(domConstruct, win, bind, touch) {
+    return require(['dojo/dom-construct', 'dojo/_base/window', 'dojo/domReady!'], function(domConstruct, win) {
       if (debug) domConstruct.place(stats.getDomElement(), win.body(), 'last');
-      bind(document, 'mouseup', mouseUpHandler);
-      bind(document, 'touchend', function(event) {
-        return mouseUpHandler(event.changedTouches[0]);
-      });
-      bind(document, 'selectstart', function(event) {
-        event.preventDefault();
-        return false;
-      });
       return game.run();
     });
   });

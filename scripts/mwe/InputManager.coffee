@@ -16,24 +16,21 @@ limitations under the License.
 
 ###
 
-define [ 'dojo/_base/declare', 'dojo/on', 'dojo/touch', 'dojo/dom-geometry' ], (declare, bind, touch, domGeom) =>
+define [ 'dojo/_base/declare', 'dojo/on', 'dojo/touch', 'dojo/dom-geometry', 'dojo/_base/lang' ], (declare, bind, touch, domGeom, lang) =>
   declare 'InputManager', null, {
     keyActions: []
     mouseAction: null
     touchAction: null
-    canvas: null
+    canvasManager: null
     box: null
 
     constructor: (args) ->
       declare.safeMixin @, args
-      bind document, 'keydown', @keyPressed
-      bind document, 'keyup', @keyPressed
-      bind @canvas, 'mousedown', @mouseDown
-      bind document, 'mouseup', @mouseUp
-      bind @canvas, 'mousemove', @mouseMove
-      bind document, touch.release, @touchEnd
-      bind @canvas, touch.press, @touchStart
-      bind @canvas, touch.move, @touchMove
+      #bind document, 'keydown', @keyPressed
+      #bind document, 'keyup', @keyReleased
+
+    bind: (target, eventTarget) ->
+      bind target, eventTarget, @[eventTarget]
 
     # Maps a GameAction to a specific key. The key codes are defined in java.awt.KeyEvent.
     # If the key already has a GameAction mapped to it, the new GameAction overwrites it.
@@ -47,6 +44,16 @@ define [ 'dojo/_base/declare', 'dojo/on', 'dojo/touch', 'dojo/dom-geometry' ], (
       if initialPressOnly
         ga.behavior = ga.statics.DETECT_INITIAL_PRESS_ONLY # Can this be replaced by binding to on.once????
       @mapToKey ga, keyCode
+
+    bindMouse: ->
+      bind @canvasManager.canvas, 'mousedown', lang.hitch @, @mouseDown
+      bind document, 'mouseup', lang.hitch @, @mouseUp
+      bind @canvasManager.canvas, 'mousemove', lang.hitch @, @mouseMove
+
+    bindTouch: ->
+      bind @canvasManager.canvas, 'touchstart', @touchStart
+      bind document, 'touchend', @touchEnd
+      bind @canvasManager.canvas, 'touchmove', @touchMove
 
     setMouseAction: (gameAction) ->
       @mouseAction = gameAction
@@ -88,7 +95,7 @@ define [ 'dojo/_base/declare', 'dojo/on', 'dojo/touch', 'dojo/dom-geometry' ], (
 	    # event.consume()
 
     getMouseLoc: (event) ->
-      coordsM = domGeom.position @canvas
-      return { x: Math.round(event.clientX - coordsM.x), y: Math.round(event.clientY - coordsM.y) } unless box?
+      coordsM = domGeom.position @canvasManager.canvas
+      return { x: (Math.round event.clientX - coordsM.x), y: (Math.round event.clientY - coordsM.y) } unless @box?
       return { x: (event.clientX - coordsM.x) / @box.scale, y: (event.clientY - coordsM.y) / @box.scale }
   }
